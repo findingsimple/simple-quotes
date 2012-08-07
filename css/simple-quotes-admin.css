@@ -1,12 +1,12 @@
        /* Admin Menu - 16px */
-        #menu-posts-quote .wp-menu-image {
+        #menu-posts-simple_quote .wp-menu-image {
             background: url('../img/icon-adminmenu16-sprite.png') no-repeat 6px 6px !important;
         }
-        #menu-posts-quote:hover .wp-menu-image, #menu-posts-quote.wp-has-current-submenu .wp-menu-image {
+        #menu-posts-simple_quote:hover .wp-menu-image, #menu-posts-simple_quote.wp-has-current-submenu .wp-menu-image {
             background-position: 6px -26px !important;
         }
         /* Post Screen - 32px */
-        .icon32-posts-quote {
+        .icon32-posts-simple_quote {
             background: url('../img/icon-adminpage32.png') no-repeat left top !important;
         }
         @media
@@ -17,14 +17,14 @@
         only screen and (                min-resolution: 1.5dppx) {
              
             /* Admin Menu - 16px @2x */
-            #menu-posts-quote .wp-menu-image {
+            #menu-posts-simple_quote .wp-menu-image {
                 background-image: url('../img/icon-adminmenu16-sprite_2x.png') !important;
                 -webkit-background-size: 16px 48px;
                 -moz-background-size: 16px 48px;
                 background-size: 16px 48px;
             }
             /* Post Screen - 32px @2x */
-            .icon32-posts-quote {
+            .icon32-posts-simple_quote {
                 background-image: url('../img/images/icon-adminpage32_2x.png') !important;
                 -webkit-background-size: 32px 32px;
                 -moz-background-size: 32px 32px;
