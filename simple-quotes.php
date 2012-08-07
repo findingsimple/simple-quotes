@@ -65,9 +65,9 @@ class Simple_Quotes {
 
 		self::$text_domain = apply_filters( 'simple_quotes_text_domain', 'Simple_Quotes' );
 
-		self::$post_type_name = apply_filters( 'simple_quotes_post_type_name', 'quote' );
+		self::$post_type_name = apply_filters( 'simple_quotes_post_type_name', 'simple_quote' );
 
-		self::$admin_screen_id = apply_filters( 'simple_quotes_admin_screen_id', 'quote' );
+		self::$admin_screen_id = apply_filters( 'simple_quotes_admin_screen_id', 'simple_quote' );
 
 		add_action( 'init', array( __CLASS__, 'register' ) );
 		
@@ -80,6 +80,8 @@ class Simple_Quotes {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_styles_and_scripts' ) );
 		
 		add_shortcode( 'quote', array( __CLASS__, 'shortcode_quote') );
+		
+		register_widget('WP_Widget_Quote');
 		
 	}
 
@@ -115,7 +117,7 @@ class Simple_Quotes {
 			'supports' => array('title', 'editor', 'thumbnail', 'custom-fields')
 		); 
 
-		register_post_type( 'quote' , $args );
+		register_post_type( self::$post_type_name , $args );
 	}
 
 	/**
@@ -127,7 +129,7 @@ class Simple_Quotes {
 	public static function updated_messages( $messages ) {
 		global $post;
 
-		$messages['quote'] = array(
+		$messages['simple_quote'] = array(
 			0 => '', // Unused. Messages start at index 1.
 			1 => sprintf( __('Quote updated. <a href="%s">View quote</a>', self::$text_domain ), esc_url( get_permalink($post->ID) ) ),
 			2 => __('Custom field updated.', self::$text_domain ),
@@ -169,7 +171,7 @@ class Simple_Quotes {
 	 * @wp-action add_meta_boxes
 	 */
 	public static function add_meta_box() {
-		add_meta_box( 'quote-citation', __( 'Citation', self::$text_domain  ), array( __CLASS__, 'do_meta_box' ), 'quote', 'normal', 'high' );
+		add_meta_box( 'quote-citation', __( 'Citation', self::$text_domain  ), array( __CLASS__, 'do_meta_box' ), 'simple_quote', 'normal', 'high' );
 	}
 
 	/**
@@ -384,3 +386,137 @@ class Simple_Quotes {
 }
 
 endif;
+
+/**
+ * Quote widget class
+ *
+ * @since 1.0
+ */
+class WP_Widget_Quote extends WP_Widget {
+
+	function __construct() {
+	
+		$widget_ops = array('classname' => 'widget_quote', 'description' => __('Display a quote'));
+		
+		$control_ops = array('width' => 400, 'height' => 350);
+		
+		parent::__construct('quote', __('Quote'), $widget_ops, $control_ops);
+		
+	}
+
+	function widget( $args, $instance ) {
+	
+		extract($args);
+		
+		$title = apply_filters( 'widget_title', empty( $instance['title'] ) ? '' : $instance['title'], $instance, $this->id_base );
+		
+		if ( ! empty( $instance['ids'] ) )
+			$ids = split(',' , str_replace (" ", "", $instance['ids'] ) );
+		
+		if ( empty( $instance['number'] ) || ! $number = absint( $instance['number'] ) )
+ 			$number = 5;
+		
+		//default args
+		$args = array(
+			'post_type' => 'simple_quote',
+			'posts_per_page' => $number
+		);
+		
+		//if ids set get specific ids and remove posts_per_page limit
+		if ( !empty ( $ids )  ) {
+			$args['post__in'] = $ids;
+			$args['posts_per_page'] = -1;
+		}
+		
+		//run query
+		$resources = get_posts( $args );
+		
+		/*
+		
+		$sorted_list = array();
+	
+		foreach( $ids as $id ) :
+			foreach( $resources as $resource ) :		
+				
+				if( $resource->ID == $id )
+					$sorted_list[] = $resource;			
+				
+			endforeach;
+		endforeach;
+	
+		$resources = $sorted_list;
+		
+		*/
+		
+		echo $before_widget;
+		
+		if ( !empty( $title ) ) echo $before_title . $title . $after_title; 
+		
+		$count = 1;
+		
+		if ( !empty ( $resources ) ) :
+		 
+			echo '<div class="quotewidget">';
+			
+			foreach( $resources as $resource ) : 
+			
+				echo apply_filters('the_content', $resource->post_content);
+				
+				echo get_post_meta($resource->ID, 'quote-citation-source-name' , true);
+
+			endforeach;
+		
+			echo '</div>';
+		
+		endif; //end if !empty ( $resources );
+		
+		echo $after_widget;
+		
+	}
+
+	function update( $new_instance, $old_instance ) {
+	
+		$instance = $old_instance;
+		
+		$instance['title'] = strip_tags($new_instance['title']);
+				
+		$instance['number'] = absint( $new_instance['number'] );
+
+		$instance['ids'] = strip_tags($new_instance['ids']);
+		
+		$instance['randomize'] = isset($new_instance['randomize']);
+		
+		return $instance;
+		
+	}
+
+	function form( $instance ) {
+	
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'ids' => '' ) );
+		
+		$title = strip_tags($instance['title']);
+				
+		$number = isset($instance['number']) ? absint($instance['number']) : 5;
+		
+		$ids = strip_tags($instance['ids']);
+
+?>
+		<p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('number'); ?>"><?php _e('Number of quotes to show:'); ?></label>
+			<input id="<?php echo $this->get_field_id('number'); ?>" name="<?php echo $this->get_field_name('number'); ?>" type="text" value="<?php echo $number; ?>" size="3" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('ids'); ?>"><?php _e('Quote IDs: (optional - overrides number of quotes above)'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('ids'); ?>" name="<?php echo $this->get_field_name('ids'); ?>" type="text" value="<?php echo esc_attr($ids); ?>" />
+		</p>
+		<p>
+			<input id="<?php echo $this->get_field_id('randomize'); ?>" name="<?php echo $this->get_field_name('randomize'); ?>" type="checkbox" <?php checked(isset($instance['randomize']) ? $instance['randomize'] : 0); ?> />
+			&nbsp;<label for="<?php echo $this->get_field_id('randomize'); ?>"><?php _e('Randomize quotes'); ?></label>
+		</p>
+<?php
+	}
+}
