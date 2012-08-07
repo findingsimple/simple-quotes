@@ -484,7 +484,17 @@ class WP_Widget_Quote extends WP_Widget {
 			
 			foreach( $resources as $resource ) : 
 			
-				$output .= '<blockquote>' . apply_filters( 'the_content', $resource->post_content ) . '</blockquote><!-- blockquote -->';
+				$output .= '<blockquote>';
+				
+				if ( !empty( $instance['curly-quotes'] ) )
+					$output .= '<span class="blockquote-open">&#8220;</span>';
+				
+				$output .= apply_filters( 'the_content', $resource->post_content ); 
+
+				if ( !empty( $instance['curly-quotes'] ) )
+					$output .= '<span class="blockquote-close">&#8221;</span>';
+				
+				$output .= '</blockquote><!-- blockquote -->';
 				
 				if ( !empty( $instance['source-link'] ) )
 					$output .= '<cite class="source">' . Simple_Quotes::get_source_link( $resource->ID ) . '</cite><!-- cite -->';
@@ -494,7 +504,7 @@ class WP_Widget_Quote extends WP_Widget {
 			endforeach;
 			
 			if ( !empty( $instance['archive-link'] ) )
-				$output .= '<a href="' . get_post_type_archive_link( Simple_Quotes::$post_type_name ) . '" title="' . __('Read more quotes', Simple_Quotes::$text_domain ) . '">' . __('Read more quotes', Simple_Quotes::$text_domain ) . '</a>';
+				$output .= '<a href="' . get_post_type_archive_link( Simple_Quotes::$post_type_name ) . '" title="' . __('Read more quotes', Simple_Quotes::$text_domain ) . '" class="read-more">' . __('Read more quotes', Simple_Quotes::$text_domain ) . '</a>';
 		
 			$output .= '</div><!-- .quotewidget -->';
 		
@@ -522,6 +532,8 @@ class WP_Widget_Quote extends WP_Widget {
 		$instance['ids'] = strip_tags($new_instance['ids']);
 		
 		$instance['randomize'] = isset($new_instance['randomize']);
+		
+		$instance['curly-quotes'] = isset($new_instance['curly-quotes']);
 		
 		$instance['source-link'] = isset($new_instance['source-link']);
 		
@@ -560,6 +572,10 @@ class WP_Widget_Quote extends WP_Widget {
 		<p>
 			<input id="<?php echo $this->get_field_id('randomize'); ?>" name="<?php echo $this->get_field_name('randomize'); ?>" type="checkbox" <?php checked(isset($instance['randomize']) ? $instance['randomize'] : 0); ?> />
 			&nbsp;<label for="<?php echo $this->get_field_id('randomize'); ?>"><?php _e('Randomize quotes'); ?></label>
+		</p>
+		<p>
+			<input id="<?php echo $this->get_field_id('curly-quotes'); ?>" name="<?php echo $this->get_field_name('curly-quotes'); ?>" type="checkbox" <?php checked(isset($instance['curly-quotes']) ? $instance['curly-quotes'] : 0); ?> />
+			&nbsp;<label for="<?php echo $this->get_field_id('curly-quotes'); ?>"><?php _e('Include extra curly quotes spans'); ?></label>
 		</p>
 		<p>
 			<input id="<?php echo $this->get_field_id('source-link'); ?>" name="<?php echo $this->get_field_name('source-link'); ?>" type="checkbox" <?php checked(isset($instance['source-link']) ? $instance['source-link'] : 0); ?> />
