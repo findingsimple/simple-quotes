@@ -109,6 +109,7 @@ class Simple_Quotes {
 			'publicly_queryable' => true,
 			'show_ui' => true, 
 			'query_var' => true,
+			'has_archive' => true,
 			'rewrite' => array( 'slug' => 'quote', 'with_front' => false ),
 			'capability_type' => 'post',
 			'hierarchical' => false,
@@ -251,7 +252,9 @@ class Simple_Quotes {
 	 * @param array $args Arguments to pass to method
 	 */
 	public static function __callStatic($name, $args) {
+	
 		$get_method = 'get_' . substr($name, 4);
+		
 		if (substr($name, 0, 4) === 'the_' && method_exists(__CLASS__, $get_method)) {
 			echo call_user_func_array(array(__CLASS__, $get_method), $args);
 			return;
@@ -262,6 +265,7 @@ class Simple_Quotes {
 		$file = $trace[0]['file'];
 		$line = $trace[0]['line'];
 		trigger_error('Call to undefined method ' . __CLASS__ . '::' . $name . "() in $file on line $line", E_USER_ERROR);
+		
 	}
 
 	/**#@+
@@ -420,6 +424,7 @@ class WP_Widget_Quote extends WP_Widget {
 		}	
 	
 		extract($args);
+		
 		$output = '';
 		
 		$title = apply_filters( 'widget_title', empty( $instance['title'] ) ? '' : $instance['title'], $instance, $this->id_base );
@@ -479,13 +484,19 @@ class WP_Widget_Quote extends WP_Widget {
 			
 			foreach( $resources as $resource ) : 
 			
-				$output .= apply_filters('the_content', $resource->post_content);
+				$output .= '<blockquote>' . apply_filters( 'the_content', $resource->post_content ) . '</blockquote><!-- blockquote -->';
 				
-				$output .= get_post_meta($resource->ID, 'quote-citation-source-name' , true);
-
+				if ( !empty( $instance['source-link'] ) )
+					$output .= '<cite class="source">' . Simple_Quotes::get_source_link( $resource->ID ) . '</cite><!-- cite -->';
+				else
+					$output .= '<cite class="source">' . Simple_Quotes::get_source( $resource->ID ) . '</cite><!-- cite -->';					
+					
 			endforeach;
+			
+			if ( !empty( $instance['archive-link'] ) )
+				$output .= '<a href="' . get_post_type_archive_link( Simple_Quotes::$post_type_name ) . '" title="' . __('Read more quotes', Simple_Quotes::$text_domain ) . '">' . __('Read more quotes', Simple_Quotes::$text_domain ) . '</a>';
 		
-			$output .= '</div>';
+			$output .= '</div><!-- .quotewidget -->';
 		
 		endif; //end if !empty ( $resources );
 		
@@ -511,6 +522,10 @@ class WP_Widget_Quote extends WP_Widget {
 		$instance['ids'] = strip_tags($new_instance['ids']);
 		
 		$instance['randomize'] = isset($new_instance['randomize']);
+		
+		$instance['source-link'] = isset($new_instance['source-link']);
+		
+		$instance['archive-link'] = isset($new_instance['archive-link']);
 		
 		//flush cache
 		delete_transient( 'widget_simple_quotes' );
@@ -545,6 +560,14 @@ class WP_Widget_Quote extends WP_Widget {
 		<p>
 			<input id="<?php echo $this->get_field_id('randomize'); ?>" name="<?php echo $this->get_field_name('randomize'); ?>" type="checkbox" <?php checked(isset($instance['randomize']) ? $instance['randomize'] : 0); ?> />
 			&nbsp;<label for="<?php echo $this->get_field_id('randomize'); ?>"><?php _e('Randomize quotes'); ?></label>
+		</p>
+		<p>
+			<input id="<?php echo $this->get_field_id('source-link'); ?>" name="<?php echo $this->get_field_name('source-link'); ?>" type="checkbox" <?php checked(isset($instance['source-link']) ? $instance['source-link'] : 0); ?> />
+			&nbsp;<label for="<?php echo $this->get_field_id('source-link'); ?>"><?php _e('Link source name to source url'); ?></label>
+		</p>
+		<p>
+			<input id="<?php echo $this->get_field_id('archive-link'); ?>" name="<?php echo $this->get_field_name('archive-link'); ?>" type="checkbox" <?php checked(isset($instance['archive-link']) ? $instance['archive-link'] : 0); ?> />
+			&nbsp;<label for="<?php echo $this->get_field_id('archive-link'); ?>"><?php _e('Display link to quote archive'); ?></label>
 		</p>
 <?php
 	}
