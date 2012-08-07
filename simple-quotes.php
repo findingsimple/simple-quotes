@@ -428,25 +428,30 @@ class WP_Widget_Quote extends WP_Widget {
 			$args['posts_per_page'] = -1;
 		}
 		
+		if ( !empty ( $instance['randomize'] ) ) {
+			$args['orderby'] = 'rand';
+		}
+		
 		//run query
 		$resources = get_posts( $args );
 		
-		/*
+		// If not set to randomize and user has entered a list of IDs display in the order entered
+		if ( empty ( $instance['randomize'] ) && !empty ( $ids ) ) {
 		
-		$sorted_list = array();
-	
-		foreach( $ids as $id ) :
-			foreach( $resources as $resource ) :		
-				
-				if( $resource->ID == $id )
-					$sorted_list[] = $resource;			
-				
+			$sorted_list = array();
+		
+			foreach( $ids as $id ) :
+				foreach( $resources as $resource ) :		
+					
+					if( $resource->ID == $id )
+						$sorted_list[] = $resource;			
+					
+				endforeach;
 			endforeach;
-		endforeach;
-	
-		$resources = $sorted_list;
 		
-		*/
+			$resources = $sorted_list;
+		
+		}
 		
 		echo $before_widget;
 		
