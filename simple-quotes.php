@@ -325,17 +325,7 @@ class Simple_Quotes {
 	/**#@-*/
 
 	/**
-	 * Build qtip shortcode.
-	 *
-	 * @since 1.0
-	 *	
-	 * Required arguments:
-	 *  - link_text 
-	 *  - link_title
-	 *  - link_url
-	 *  - tooltip_text
-	 *
-	 * If required arguments are missin there is no output
+	 * Build quote shortcode.
 	 *
 	 * @since 1.0
 	 * @author Jason Conroy <jason@findingsimple.com>
