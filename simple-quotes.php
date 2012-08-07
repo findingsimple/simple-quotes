@@ -406,9 +406,8 @@ class WP_Widget_Quote extends WP_Widget {
 
 	function widget( $args, $instance ) {
 		
-		// Check for cached output
-		$cache = wp_cache_get( 'widget_simple_quotes', 'widget' );
-					
+		$cache = get_transient( 'widget_simple_quotes' );
+				
 		if ( ! is_array( $cache ) )
 			$cache = array();
 
@@ -419,7 +418,6 @@ class WP_Widget_Quote extends WP_Widget {
 			echo $cache[ $args['widget_id'] ];
 			return;
 		}	
-		// End Check for cached output
 	
 		extract($args);
 		$output = '';
@@ -450,8 +448,8 @@ class WP_Widget_Quote extends WP_Widget {
 		
 		//run query
 		$resources = get_posts( $query_args );
-		
-		// If not set to randomize and user has entered a list of IDs display in the order entered
+				
+		// If user has entered a list of IDs display in the order entered
 		if ( empty ( $instance['randomize'] ) && !empty ( $ids ) ) {
 		
 			$sorted_list = array();
@@ -497,8 +495,8 @@ class WP_Widget_Quote extends WP_Widget {
 		
 		//cache output
 		$cache[ $args['widget_id'] ] = $output;
-				
-		wp_cache_set( 'widget_simple_quotes' , $cache , 'widget' );
+		
+		set_transient( 'widget_simple_quotes', $cache, 60*60*12 );
 		
 	}
 
@@ -515,11 +513,7 @@ class WP_Widget_Quote extends WP_Widget {
 		$instance['randomize'] = isset($new_instance['randomize']);
 		
 		//flush cache
-		$this->flush_widget_cache();
-		$alloptions = wp_cache_get( 'alloptions', 'options' );
-		if ( isset($alloptions['widget_simple_quotes']) )
-			delete_option('widget_simple_quotes');
-		//end flush cache
+		delete_transient( 'widget_simple_quotes' );
 		
 		return $instance;
 		
@@ -554,11 +548,5 @@ class WP_Widget_Quote extends WP_Widget {
 		</p>
 <?php
 	}
-	
-	function flush_widget_cache() {
-	
-		wp_cache_delete( 'widget_simple_quotes', 'widget');
-		
-	}	
 	
 }
