@@ -405,8 +405,24 @@ class WP_Widget_Quote extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
+		
+		// Check for cached output
+		$cache = wp_cache_get( 'widget_simple_quotes', 'widget' );
+					
+		if ( ! is_array( $cache ) )
+			$cache = array();
+
+		if ( ! isset( $args['widget_id'] ) )
+			$args['widget_id'] = $this->id;
+		
+		if ( isset( $cache[ $args['widget_id'] ] ) ) {
+			echo $cache[ $args['widget_id'] ];
+			return;
+		}	
+		// End Check for cached output
 	
 		extract($args);
+		$output = '';
 		
 		$title = apply_filters( 'widget_title', empty( $instance['title'] ) ? '' : $instance['title'], $instance, $this->id_base );
 		
@@ -417,23 +433,23 @@ class WP_Widget_Quote extends WP_Widget {
  			$number = 5;
 		
 		//default args
-		$args = array(
+		$query_args = array(
 			'post_type' => 'simple_quote',
 			'posts_per_page' => $number
 		);
 		
 		//if ids set get specific ids and remove posts_per_page limit
 		if ( !empty ( $ids )  ) {
-			$args['post__in'] = $ids;
-			$args['posts_per_page'] = -1;
+			$query_args['post__in'] = $ids;
+			$query_args['posts_per_page'] = -1;
 		}
 		
 		if ( !empty ( $instance['randomize'] ) ) {
-			$args['orderby'] = 'rand';
+			$query_args['orderby'] = 'rand';
 		}
 		
 		//run query
-		$resources = get_posts( $args );
+		$resources = get_posts( $query_args );
 		
 		// If not set to randomize and user has entered a list of IDs display in the order entered
 		if ( empty ( $instance['randomize'] ) && !empty ( $ids ) ) {
@@ -453,29 +469,36 @@ class WP_Widget_Quote extends WP_Widget {
 		
 		}
 		
-		echo $before_widget;
+		$output .= $before_widget;
 		
-		if ( !empty( $title ) ) echo $before_title . $title . $after_title; 
+		if ( !empty( $title ) ) $output .= $before_title . $title . $after_title; 
 		
 		$count = 1;
 		
 		if ( !empty ( $resources ) ) :
 		 
-			echo '<div class="quotewidget">';
+			$output .= '<div class="quotewidget">';
 			
 			foreach( $resources as $resource ) : 
 			
-				echo apply_filters('the_content', $resource->post_content);
+				$output .= apply_filters('the_content', $resource->post_content);
 				
-				echo get_post_meta($resource->ID, 'quote-citation-source-name' , true);
+				$output .= get_post_meta($resource->ID, 'quote-citation-source-name' , true);
 
 			endforeach;
 		
-			echo '</div>';
+			$output .= '</div>';
 		
 		endif; //end if !empty ( $resources );
 		
-		echo $after_widget;
+		$output .= $after_widget;
+		
+		echo $output;
+		
+		//cache output
+		$cache[ $args['widget_id'] ] = $output;
+				
+		wp_cache_set( 'widget_simple_quotes' , $cache , 'widget' );
 		
 	}
 
@@ -490,6 +513,13 @@ class WP_Widget_Quote extends WP_Widget {
 		$instance['ids'] = strip_tags($new_instance['ids']);
 		
 		$instance['randomize'] = isset($new_instance['randomize']);
+		
+		//flush cache
+		$this->flush_widget_cache();
+		$alloptions = wp_cache_get( 'alloptions', 'options' );
+		if ( isset($alloptions['widget_simple_quotes']) )
+			delete_option('widget_simple_quotes');
+		//end flush cache
 		
 		return $instance;
 		
@@ -524,4 +554,11 @@ class WP_Widget_Quote extends WP_Widget {
 		</p>
 <?php
 	}
+	
+	function flush_widget_cache() {
+	
+		wp_cache_delete( 'widget_simple_quotes', 'widget');
+		
+	}	
+	
 }
