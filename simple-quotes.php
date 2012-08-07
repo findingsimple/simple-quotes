@@ -63,11 +63,11 @@ class Simple_Quotes {
 	public static function init() {
 		global $wp_version;
 
-		self::$text_domain = apply_filters( 'simple_snippets_text_domain', 'Simple_Quotes' );
+		self::$text_domain = apply_filters( 'simple_quotes_text_domain', 'Simple_Quotes' );
 
-		self::$post_type_name = apply_filters( 'simple_snippets_post_type_name', 'quote' );
+		self::$post_type_name = apply_filters( 'simple_quotes_post_type_name', 'quote' );
 
-		self::$admin_screen_id = apply_filters( 'simple_snippets_admin_screen_id', 'quote' );
+		self::$admin_screen_id = apply_filters( 'simple_quotes_admin_screen_id', 'quote' );
 
 		add_action( 'init', array( __CLASS__, 'register' ) );
 		
@@ -78,6 +78,8 @@ class Simple_Quotes {
 		add_action( 'save_post', array( __CLASS__, 'save_meta' ), 10, 1 );
 		
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_styles_and_scripts' ) );
+		
+		add_shortcode( 'quote', array( __CLASS__, 'shortcode_quote') );
 		
 	}
 
@@ -315,6 +317,51 @@ class Simple_Quotes {
 		
 	}
 	/**#@-*/
+
+	/**
+	 * Build qtip shortcode.
+	 *
+	 * @since 1.0
+	 *	
+	 * Required arguments:
+	 *  - link_text 
+	 *  - link_title
+	 *  - link_url
+	 *  - tooltip_text
+	 *
+	 * If required arguments are missin there is no output
+	 *
+	 * @since 1.0
+	 * @author Jason Conroy <jason@findingsimple.com>
+	 * @package Simple Quotes
+	 *
+	 */
+	 
+	public static function shortcode_quote( $atts, $content = null ) {
+	
+		extract( shortcode_atts( 
+			array(	'id' => ''
+			) , $atts)
+		);
+		
+		$content = '';
+	
+		return self::quotes_remove_wpautop($content);
+	
+	}
+
+	/**
+	 * Replaces WP autop formatting 
+	 *
+	 * @since 1.0
+	 * @author Jason Conroy <jason@findingsimple.com>
+	 * @package Simple Quotes
+	 */
+	public static function quotes_remove_wpautop($content) { 
+		$content = do_shortcode( shortcode_unautop( $content ) ); 
+		$content = preg_replace( '#^<\/p>|^<br \/>|<p>$#', '', $content);
+		return $content;
+	}
 	
 	/**
 	 * Helper function to get the URL of a given file. 
