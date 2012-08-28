@@ -272,7 +272,7 @@ class Simple_Quotes {
 	 * @internal Template tag for use in templates
 	 */
 	/**
-	 * Get the testimonial source's name
+	 * Get the quote source's name
 	 *
 	 * @param int $post_ID Post ID. Defaults to the current post's ID
 	 */
@@ -442,7 +442,7 @@ class WP_Widget_Quote extends WP_Widget {
 		}
 		
 		//run query
-		$resources = get_posts( $query_args );
+		$quotes = get_posts( $query_args );
 				
 		// If user has entered a list of IDs display in the order entered
 		if ( empty ( $instance['randomize'] ) && !empty ( $ids ) ) {
@@ -450,15 +450,15 @@ class WP_Widget_Quote extends WP_Widget {
 			$sorted_list = array();
 		
 			foreach( $ids as $id ) :
-				foreach( $resources as $resource ) :		
+				foreach( $quotes as $quote ) :		
 					
-					if( $resource->ID == $id )
-						$sorted_list[] = $resource;			
+					if( $quote->ID == $id )
+						$sorted_list[] = $quote;			
 					
 				endforeach;
 			endforeach;
 		
-			$resources = $sorted_list;
+			$quotes = $sorted_list;
 		
 		}
 		
@@ -468,18 +468,18 @@ class WP_Widget_Quote extends WP_Widget {
 		
 		$count = 1;
 		
-		if ( !empty ( $resources ) ) :
+		if ( !empty ( $quotes ) ) :
 		 
 			$output .= '<div class="quotewidget">';
 			
-			foreach( $resources as $resource ) : 
+			foreach( $quotes as $quote ) : 
 			
 				$output .= '<blockquote>';
 				
 				if ( !empty( $instance['curly-quotes'] ) )
 					$output .= '<span class="blockquote-open">&#8220;</span>';
 				
-				$output .= apply_filters( 'the_content', $resource->post_content ); 
+				$output .= apply_filters( 'the_content', $quote->post_content ); 
 
 				if ( !empty( $instance['curly-quotes'] ) )
 					$output .= '<span class="blockquote-close">&#8221;</span>';
@@ -487,9 +487,9 @@ class WP_Widget_Quote extends WP_Widget {
 				$output .= '</blockquote><!-- blockquote -->';
 				
 				if ( !empty( $instance['source-link'] ) )
-					$output .= '<cite class="source">' . Simple_Quotes::get_source_link( $resource->ID ) . '</cite><!-- cite -->';
+					$output .= '<cite class="source">' . Simple_Quotes::get_source_link( $quote->ID ) . '</cite><!-- cite -->';
 				else
-					$output .= '<cite class="source">' . Simple_Quotes::get_source( $resource->ID ) . '</cite><!-- cite -->';					
+					$output .= '<cite class="source">' . Simple_Quotes::get_source( $quote->ID ) . '</cite><!-- cite -->';					
 					
 			endforeach;
 			
@@ -498,7 +498,7 @@ class WP_Widget_Quote extends WP_Widget {
 		
 			$output .= '</div><!-- .quotewidget -->';
 		
-		endif; //end if !empty ( $resources );
+		endif; //end if !empty ( $quotes );
 		
 		$output .= $after_widget;
 		
