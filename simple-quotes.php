@@ -82,6 +82,22 @@ class Simple_Quotes {
 		add_shortcode( 'quote', array( __CLASS__, 'shortcode_quote') );
 		
 		register_widget('WP_Widget_Quote');
+
+		add_image_size( 'quotes-admin-thumb', 60, 60, false );
+
+		add_filter( 'manage_edit-' . self::$post_type_name . '_columns' , array( __CLASS__, 'add_thumbnail_column') , 10 );
+		
+		add_action( 'manage_' . self::$post_type_name . '_posts_custom_column' , array( __CLASS__, 'thumbnail_column_contents') , 10, 2 );
+
+		add_filter( 'enter_title_here', __CLASS__ . '::change_default_title' );
+
+		add_filter( 'admin_post_thumbnail_html', __CLASS__ . '::change_featured_image_metabox_text' );
+
+		add_filter( 'gettext', __CLASS__ . '::change_featured_image_link_text' );
+
+		add_action( 'add_meta_boxes_' . self::$post_type_name, __CLASS__ . '::rename_featured_image_metabox' );
+
+		add_filter( 'image_size_names_choose', __CLASS__ . '::remove_image_size_options' );
 		
 	}
 
@@ -130,7 +146,7 @@ class Simple_Quotes {
 	public static function updated_messages( $messages ) {
 		global $post;
 
-		$messages['simple_quote'] = array(
+		$messages[ self::$post_type_name ] = array(
 			0 => '', // Unused. Messages start at index 1.
 			1 => sprintf( __('Quote updated. <a href="%s">View quote</a>', self::$text_domain ), esc_url( get_permalink($post->ID) ) ),
 			2 => __('Custom field updated.', self::$text_domain ),
@@ -140,7 +156,7 @@ class Simple_Quotes {
 			5 => isset($_GET['revision']) ? sprintf( __('Quote restored to revision from %s', self::$text_domain ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 			6 => sprintf( __('Quote published. <a href="%s">View quote</a>', self::$text_domain ), esc_url( get_permalink($post->ID) ) ),
 			7 => __('Quote saved.', self::$text_domain ),
-			8 => sprintf( __('Quote submitted. <a target="_blank" href="%s">Preview bio</a>', self::$text_domain ), esc_url( add_query_arg( 'preview', 'true', get_permalink($post->ID) ) ) ),
+			8 => sprintf( __('Quote submitted. <a target="_blank" href="%s">Preview quote</a>', self::$text_domain ), esc_url( add_query_arg( 'preview', 'true', get_permalink($post->ID) ) ) ),
 			9 => sprintf( __('Quote scheduled for: <strong>%1$s</strong>. <a target="_blank" href="%2$s">Preview quote</a>', self::$text_domain ),
 			  // translators: Publish box date format, see http://php.net/date
 			  date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post->ID) ) ),
@@ -172,7 +188,7 @@ class Simple_Quotes {
 	 * @wp-action add_meta_boxes
 	 */
 	public static function add_meta_box() {
-		add_meta_box( 'quote-citation', __( 'Citation', self::$text_domain  ), array( __CLASS__, 'do_meta_box' ), 'simple_quote', 'normal', 'high' );
+		add_meta_box( 'quote-citation', __( 'Citation', self::$text_domain  ), array( __CLASS__, 'do_meta_box' ), self::$post_type_name , 'normal', 'high' );
 	}
 
 	/**
@@ -376,6 +392,136 @@ class Simple_Quotes {
 		// Return a content URL for this path & the specified file
 		return content_url( $post_content_path . $file );
 	}	
+	
+	/**
+	 * Add a column to the manage pages page to display the interviewee thumbnail. 
+	 * 
+	 * @since 1.0
+	 * @author Jason Conroy
+	 * @package Simple Interviews
+	 */
+	public static function add_thumbnail_column( $columns ) {
+	
+  		$columns_start = array_slice( $columns, 0, 1, true );
+  		$columns_end   = array_slice( $columns, 1, null, true );
+
+  		$columns = array_merge(
+    		$columns_start,
+    		array( 'logo' => __( '', self::$text_domain ) ),
+    		$columns_end
+  		);
+	
+		return $columns;
+		
+	}	
+	
+	/**
+	 * Add the interviewee thumbnail to the custom column on the manage page.
+	 * 
+	 * @since 1.0
+	 * @author Jason Conroy
+	 * @package Simple Interviews
+	 */
+	function thumbnail_column_contents( $column_name, $post_id ) {
+				
+		if ( $column_name != 'logo' )
+			return;
+				
+		if ( function_exists('the_post_thumbnail') )
+			echo '<a href="' . get_edit_post_link( $post_id ) . '" title="' . __( 'Edit Sponsor', self::$text_domain ) . '">' . get_the_post_thumbnail( $post_id, 'sponsor-admin-thumb' ) . '</a>';
+					
+	}
+
+	/**
+	 * Replaces the "Enter title here" text
+	 *
+	 * @author Brent Shepherd <brent@findingsimple.com>
+	 * @package Simple Quotes
+	 * @since 1.0
+	 */
+	public static function change_default_title( $title ){
+		$screen = get_current_screen();
+
+		if  ( self::$post_type_name == $screen->post_type )
+			$title = __( 'Enter Quote Title', self::$text_domain );
+
+		return $title;
+	}
+	
+	/**
+	 * Replaces the 'Featured Image' label with 'Quote Thumbnail' on the Edit page for the simple_interview post type.
+	 *
+	 * @author Brent Shepherd <brent@findingsimple.com>
+	 * @package Simple Quotes
+	 * @since 1.0
+	 */
+	public static function change_featured_image_metabox_text( $metabox_html ) {
+
+		if ( get_post_type() == self::$post_type_name )
+			$metabox_html = str_replace( 'featured image', esc_attr__( 'quote thumbnail', self::$text_domain ), $metabox_html );
+
+		return $metabox_html;
+		
+	}
+
+
+	/**
+	 * Changes the 'Use as featured image' link text on the media panel
+	 *
+	 * @author Brent Shepherd <brent@findingsimple.com>
+	 * @package Simple Quotes
+	 * @since 1.0
+	 */
+	public static function change_featured_image_link_text( $text ) {
+		global $post;
+
+		if ( $text == 'Use as featured image' ) {
+
+			if ( isset( $_GET['post_id'] ) )
+				$calling_post_id = absint( $_GET['post_id'] );
+			elseif ( isset( $_POST ) && count( $_POST ) )
+				$calling_post_id = $post->post_parent;
+			else
+				$calling_post_id = 0;
+
+			if ( get_post_type( $calling_post_id ) == self::$post_type_name )
+				$text = __( "Use as the quote thumbnail", self::$text_domain );
+
+		}
+
+		return $text;
+	}
+
+
+	/**
+	 * Renames the "Featured Image" metabox to "Interview Thumbnail"
+	 *
+	 * @author Brent Shepherd <brent@findingsimple.com>
+	 * @package Simple Quotes
+	 * @since 1.0
+	 */
+	public static function rename_featured_image_metabox() {
+
+		remove_meta_box( 'postimagediv', self::$post_type_name, 'side' );
+
+		add_meta_box( 'postimagediv', __( "Quote Thumbnail", self::$text_domain ), 'post_thumbnail_meta_box', self::$post_type_name, 'side', 'low' );
+
+	}	
+
+	/**
+	 * Remove admin thumbnail size from the list of available sizes in the media uploader
+	 *
+	 * @author Jason Conroy <jason@findingsimple.com>
+	 * @package Simple Quotes
+	 * @since 1.0
+	 */	
+	public static function remove_image_size_options( $sizes ){
+	 
+		unset($sizes['quotes-admin-thumb']);
+		
+		return $sizes;
+	 
+	}
 
 }
 
