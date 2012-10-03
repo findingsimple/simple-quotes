@@ -356,9 +356,42 @@ class Simple_Quotes {
 			) , $atts)
 		);
 		
-		$content = '';
-	
-		return self::quotes_remove_wpautop($content);
+		if (!empty($id)) {
+		
+			$args = array(
+				'post_type' => self::$post_type_name ,
+				'p' => $id
+			);
+			
+			$content = '';
+			
+			/* Run query */
+			$quote = get_posts( $args );
+			
+			foreach( $quote as $post ) : setup_postdata($post); 
+			
+				$content = apply_filters( 'before_shortcode_simple_quote', $content , $post->ID );
+		
+				$content .= '<div id="quote-' . $post->ID . '" class="simple-quote-wrapper">';
+				
+				$content = apply_filters( 'open_shortcode_simple_quote', $content , $post->ID );
+				
+				$content .= '<blockquote>' . get_the_content() . '</blockquote>';
+				
+				$content = apply_filters( 'close_shortcode_simple_quote', $content , $post->ID );
+				
+				$content .= '</div>';
+				
+				$content = apply_filters( 'after_shortcode_simple_quote', $content , $post->ID );
+			
+			endforeach; 
+			
+			/* Reset Post Data */
+			wp_reset_postdata();
+			
+			return self::quotes_remove_wpautop($content);
+		
+		}
 	
 	}
 
