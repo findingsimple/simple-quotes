@@ -218,8 +218,10 @@ class Simple_Quotes_Link_To {
 						
 			// Really strange, but page_link gives us an ID and post_link gives us a post object
 			$id = ( is_object( $post ) && $post->ID ) ? $post->ID : $post;
+			
+			$choice = get_post_meta( $id , '_quote-links-to-choice', true );
 	
-			if ( isset( $links[$id] ) && $links[$id] )
+			if ( isset( $links[$id] ) && $links[$id] && ( $choice == 'quote-url' )  )
 				$link = esc_url( $links[$id] );
 			
 		}
@@ -314,7 +316,9 @@ class Simple_Quotes_Link_To {
 		
 		foreach ( $items as $item ) {
 		
-			if ( isset( $links_to_target_cache[$item->object_id] ) )
+			$choice = get_post_meta( $item->object_id , '_quote-links-to-choice', true );
+		
+			if ( isset( $links_to_target_cache[$item->object_id] ) && ( $choice == 'quote-url' )  )
 				$item->target = $links_to_target_cache[$item->object_id];
 				
 			$new_items[] = $item;
