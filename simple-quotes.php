@@ -26,6 +26,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+require_once dirname( __FILE__ ) . '/simple-quotes-link-to.php';
+
 if ( ! class_exists( 'Simple_Quotes' ) ) :
 
 /**
@@ -205,7 +207,7 @@ class Simple_Quotes {
 			<label for="quote-citation-source-name"><?php _e( 'Source Name:', self::$text_domain ); ?></label>
 			<br />
 			<input type="text" name="quote-citation-source-name" id="quote-citation-source-name"
-				value="<?php echo esc_attr( get_post_meta( $object->ID, 'quote-citation-source-name', true ) ); ?>"
+				value="<?php echo esc_attr( get_post_meta( $object->ID, '_quote-citation-source-name', true ) ); ?>"
 				size="30" tabindex="30" style="width: 99%;" />
 		</p>
 		
@@ -213,7 +215,7 @@ class Simple_Quotes {
 			<label for="quote-citation-source-url"><?php _e( 'Source URL:', self::$text_domain ); ?></label>
 			<br />
 			<input type="url" name="quote-citation-source-url" id="quote-citation-source-url"
-				value="<?php echo esc_attr( get_post_meta( $object->ID, 'quote-citation-source-url', true ) ); ?>"
+				value="<?php echo esc_attr( get_post_meta( $object->ID, '_quote-citation-source-url', true ) ); ?>"
 				size="30" tabindex="30" style="width: 99%;" />
 		</p>
 
@@ -242,19 +244,19 @@ class Simple_Quotes {
 			$new_meta_value = $_POST[$meta_key];
 
 			/* Get the meta value of the custom field key. */
-			$meta_value = get_post_meta( $post_id, $meta_key, true );
+			$meta_value = get_post_meta( $post_id, '_' . $meta_key , true );
 
 			/* If there is no new meta value but an old value exists, delete it. */
 			if ( '' == $new_meta_value && $meta_value )
-				delete_post_meta( $post_id, $meta_key, $meta_value );
+				delete_post_meta( $post_id, '_' . $meta_key , $meta_value );
 
 			/* If a new meta value was added and there was no previous value, add it. */
 			elseif ( $new_meta_value && '' == $meta_value )
-				add_post_meta( $post_id, $meta_key, $new_meta_value, true );
+				add_post_meta( $post_id, '_' . $meta_key , $new_meta_value, true );
 
 			/* If the new meta value does not match the old value, update it. */
 			elseif ( $new_meta_value && $new_meta_value != $meta_value )
-				update_post_meta( $post_id, $meta_key, $new_meta_value );
+				update_post_meta( $post_id, '_' . $meta_key , $new_meta_value );
 		}
 	}
 
@@ -297,7 +299,7 @@ class Simple_Quotes {
 		if ( absint($post_ID) === 0 )
 			$post_ID = $GLOBALS['post']->ID;
 
-		return get_post_meta($post_ID, 'quote-citation-source-name', true);
+		return get_post_meta($post_ID, '_quote-citation-source-name', true);
 		
 	}
 
@@ -311,7 +313,7 @@ class Simple_Quotes {
 		if ( absint($post_ID) === 0 )
 			$post_ID = $GLOBALS['post']->ID;
 
-		return get_post_meta($post_ID, 'quote-citation-source-url', true);
+		return get_post_meta($post_ID, '_quote-citation-source-url', true);
 		
 	}
 	
