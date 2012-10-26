@@ -260,32 +260,6 @@ class Simple_Quotes {
 		}
 	}
 
-	/**
-	 * Method overloading
-	 *
-	 * Provides a "the_*" for the "get_*" methods. If the corresponding method
-	 * does not exist, triggers an error.
-	 *
-	 * @param string $name Method name
-	 * @param array $args Arguments to pass to method
-	 */
-	public static function __callStatic($name, $args) {
-	
-		$get_method = 'get_' . substr($name, 4);
-		
-		if (substr($name, 0, 4) === 'the_' && method_exists(__CLASS__, $get_method)) {
-			echo call_user_func_array(array(__CLASS__, $get_method), $args);
-			return;
-		}
-
-		// No luck finding the method, do the same as normal PHP calls
-		$trace = debug_backtrace();
-		$file = $trace[0]['file'];
-		$line = $trace[0]['line'];
-		trigger_error('Call to undefined method ' . __CLASS__ . '::' . $name . "() in $file on line $line", E_USER_ERROR);
-		
-	}
-
 	/**#@+
 	 * @internal Template tag for use in templates
 	 */
