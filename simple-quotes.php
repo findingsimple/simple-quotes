@@ -229,7 +229,6 @@ class Simple_Quotes {
 	 * @param int $post_id The ID of the current post being saved.
 	 */
 	public static function save_meta( $post_id ) {
-		$prefix = hybrid_get_prefix();
 
 		/* Verify the nonce before proceeding. */
 		if ( !isset( $_POST['quote-citation'] ) || !wp_verify_nonce( $_POST['quote-citation'], basename( __FILE__ ) ) )
