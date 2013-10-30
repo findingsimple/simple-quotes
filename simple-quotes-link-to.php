@@ -39,7 +39,7 @@ class Simple_Quotes_Link_To {
 
 	function __construct() { 
 	
-		$this->text_domain = apply_filters( 'simple_quotes_text_domain', 'Simple_Quotes' ); 
+		self::$text_domain = apply_filters( 'simple_quotes_text_domain', 'Simple_Quotes' ); 
 	
 		$this->post_type_name = apply_filters( 'simple_quotes_post_type_name', 'simple_quote' );		
 
@@ -141,7 +141,7 @@ class Simple_Quotes_Link_To {
 	 * @wp-action add_meta_boxes
 	 */
 	function add_meta_box() {
-		add_meta_box( 'quote-link', __( 'Quote Link', $this->text_domain  ), array( $this, 'do_meta_box' ), $this->post_type_name , 'normal', 'high' );
+		add_meta_box( 'quote-link', __( 'Quote Link', self::$text_domain  ), array( $this, 'do_meta_box' ), $this->post_type_name , 'normal', 'high' );
 	}
 
 	/**
@@ -158,11 +158,11 @@ class Simple_Quotes_Link_To {
 
 		wp_nonce_field( basename( __FILE__ ), 'quote-link' );
 ?>
-		<p><?php _e( 'Point this quote to:', $this->text_domain ); ?></p>
-		<p><label><input type="radio" id="quote-links-to-wp" name="quote-links-to-choice" value="wp" <?php checked( 'wp', $choice ); ?> /> <?php _e( 'Its normal WordPress URL', $this->text_domain ); ?></label></p>
-		<p><label><input type="radio" id="quote-links-to-quote-url" name="quote-links-to-choice" value="quote-url" <?php checked( 'quote-url', $choice  ); ?> /> <?php _e( 'The Quote URL', $this->text_domain ); ?></label></p>
+		<p><?php _e( 'Point this quote to:', self::$text_domain ); ?></p>
+		<p><label><input type="radio" id="quote-links-to-wp" name="quote-links-to-choice" value="wp" <?php checked( 'wp', $choice ); ?> /> <?php _e( 'Its normal WordPress URL', self::$text_domain ); ?></label></p>
+		<p><label><input type="radio" id="quote-links-to-quote-url" name="quote-links-to-choice" value="quote-url" <?php checked( 'quote-url', $choice  ); ?> /> <?php _e( 'The Quote URL', self::$text_domain ); ?></label></p>
 		<div style="margin-left: 30px;" id="quote-links-to-quote-url-section" class="">
-			<p><label for="quote-links-to-target"><input type="checkbox" name="quote-links-to-target" id="quote-links-to-new-window" value="_blank" <?php checked( '_blank', $target ); ?>> <?php _e( 'Open this link in a new window', $this->text_domain  ); ?></label></p>
+			<p><label for="quote-links-to-target"><input type="checkbox" name="quote-links-to-target" id="quote-links-to-new-window" value="_blank" <?php checked( '_blank', $target ); ?>> <?php _e( 'Open this link in a new window', self::$text_domain  ); ?></label></p>
 		</div>		
 <?php
 	}
@@ -347,7 +347,7 @@ class Simple_Quotes_Link_To {
 	 * Notification
 	 */		
 	function notify_of_quote_link() {
-		?><div class="updated"><p><?php _e( '<strong>Note</strong>: This quote is pointing to the quote citation url.', $this->text_domain ); ?></p></div><?php
+		?><div class="updated"><p><?php _e( '<strong>Note</strong>: This quote is pointing to the quote citation url.', self::$text_domain ); ?></p></div><?php
 	}
 
 	/**
