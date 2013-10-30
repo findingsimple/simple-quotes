@@ -41,7 +41,7 @@ class Simple_Quotes_Link_To {
 	
 		self::$text_domain = apply_filters( 'simple_quotes_text_domain', 'Simple_Quotes' ); 
 	
-		$this->post_type_name = apply_filters( 'simple_quotes_post_type_name', 'simple_quote' );		
+		self::$post_type_name = apply_filters( 'simple_quotes_post_type_name', 'simple_quote' );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
 		
@@ -87,7 +87,7 @@ class Simple_Quotes_Link_To {
 				
 		//if links have already been set for this site return them otherwise get from db
 		if ( !isset( $this->links[$blog_id] ) )
-			$links_to = $this->get_meta( $this->post_type_name , '_quote-citation-source-url' );			
+			$links_to = $this->get_meta( self::$post_type_name , '_quote-citation-source-url' );
 		else
 			return $this->links[$blog_id];
 					
@@ -116,7 +116,7 @@ class Simple_Quotes_Link_To {
 												
 		//if targets have already been set for this site return them otherwise get from db
 		if ( !isset( $this->targets[$blog_id] ) )
-			$links_to_targets = $this->get_meta( $this->post_type_name ,'_quote-links-to-target' );
+			$links_to_targets = $this->get_meta( self::$post_type_name ,'_quote-links-to-target' );
 		else
 			return $this->targets[$blog_id];
 									
@@ -141,7 +141,7 @@ class Simple_Quotes_Link_To {
 	 * @wp-action add_meta_boxes
 	 */
 	function add_meta_box() {
-		add_meta_box( 'quote-link', __( 'Quote Link', self::$text_domain  ), array( $this, 'do_meta_box' ), $this->post_type_name , 'normal', 'high' );
+		add_meta_box( 'quote-link', __( 'Quote Link', self::$text_domain  ), array( $this, 'do_meta_box' ), self::$post_type_name , 'normal', 'high' );
 	}
 
 	/**
@@ -212,7 +212,7 @@ class Simple_Quotes_Link_To {
 	 */
 	function filter_link( $link, $post ) {
 	
-		if ( $post->post_type == $this->post_type_name ) {
+		if ( $post->post_type == self::$post_type_name ) {
 	
 			$links = $this->get_links();
 						
